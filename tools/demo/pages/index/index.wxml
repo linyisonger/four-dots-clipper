@@ -1,0 +1,5 @@
+<view>组件</view>
+<fp-clipper id="fpc" src="https://picsum.photos/150/100"></fp-clipper>
+<button type="primary" bindtap="clip">裁切</button>
+<view>预览</view>
+<image src="{{preSrc}}" style="width: {{w}}px; height: {{h}}px;" mode="scaleToFill"></image>

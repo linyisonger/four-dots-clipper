@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "fp-clipper": "../../components/index"
+  },
+  "navigationBarTitleText": "四点裁切",
+  "disableScroll": true
+}

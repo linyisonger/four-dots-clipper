@@ -1,0 +1,4 @@
+<view class="fd-canvas" style="--width:{{m_width}}{{m_unit}};--height:{{m_height}}{{m_unit}};--margin: {{m_point_raduis}}px;">
+    <canvas type="2d" class="canvas clip" id="clip"></canvas>
+    <canvas type="2d" class="canvas points" id="points" bindtouchstart="touchstart" bindtouchmove="touchmove"></canvas>
+</view>

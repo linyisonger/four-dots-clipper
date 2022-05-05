@@ -1,0 +1,10 @@
+page {
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+#fpc,
+image {
+  margin: 20px auto;
+}
