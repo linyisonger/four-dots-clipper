@@ -24,7 +24,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - run: |
           npm i  
-          npm run build 
+          npm run dist 
           npm publish from-package --yes
         env:
           NODE_AUTH_TOKEN: ${{secrets.NpmToken}}
