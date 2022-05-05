@@ -59,6 +59,7 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "ru-toolkit-mathematics": "^1.0.7"
+    "ru-toolkit-mathematics": "^1.0.7",
+    "miniprogram-api-typings": "^2.10.3-1"
   }
 }
