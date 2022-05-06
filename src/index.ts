@@ -47,6 +47,21 @@ export interface IFourDotsClipperConfig {
     }
 }
 /**
+ * 裁切的返回值
+ */
+export interface IFourDotsClipperClipResult {
+    /** BASE64字符串 */
+    base64: string,
+    /** 临时图片 */
+    tempFilePath: string,
+    /** 渲染的图片宽度 */
+    width: string,
+    /** 渲染的图片高度 */
+    height: string
+}
+
+
+/**
  * 缩放
  * @param ow 源图宽 
  * @param oh 源图高
@@ -110,7 +125,7 @@ const sort = (points: Vector2[]) => {
  * @param base64 
  * @returns 
  */
-const base64ToTempFilePath = (base64: string) => {
+const base64ToTempFilePath = (base64: string): Promise<string> => {
     return new Promise((resolve, reject) => {
         const fs = wx.getFileSystemManager();
         const times = new Date().getTime();
@@ -344,7 +359,8 @@ Component({
             else m_points[m_moveing].y = y;
             this.requestAnimationFrame();
         },
-        async clip() {
+        /** 裁切 */
+        async clip(): Promise<IFourDotsClipperClipResult> {
             let { m_points, i_x, i_y, i_width, i_height, r_width, r_height, is_error, m_clip_canvas, m_clip_context, m_image } = this.data;
             return new Promise(async (resolve, reject) => {
                 if (is_error) return reject({ is_error })
