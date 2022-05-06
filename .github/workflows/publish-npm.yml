@@ -21,10 +21,10 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 14
-          registry-url: https://registry.npm.taobao.org
+          registry-url: https://registry.npmjs.org
       - run: |
           npm i  
           npm run dist 
-          npm publish from-package --yes
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.NpmToken}}
