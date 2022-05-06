@@ -1,6 +1,6 @@
 ### 四点裁切组件
 
-这是一个很'常用'的四点裁切组件。
+这是一个很'常用'的四点裁切组件。🍾
 
 
 ![Git Actions](https://img.shields.io/github/workflow/status/LINYISONGER/four-dots-clipper/npm%20packages%20publish?style=for-the-badge)![Apache-2.0](https://img.shields.io/github/license/linyisonger/four-dots-clipper?style=for-the-badge)![Stars](https://img.shields.io/github/stars/linyisonger/four-dots-clipper?style=for-the-badge) ![npm](https://img.shields.io/npm/v/four-dots-clipper?style=for-the-badge)![npm](https://img.shields.io/npm/dw/four-dots-clipper?style=for-the-badge)
@@ -67,6 +67,12 @@ Page({
   }
 })
 ```
+
+#### 属性
+
+##### src
+
+`src:string` 图片地址
 
 #### 方法
 
