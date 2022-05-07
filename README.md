@@ -74,6 +74,61 @@ Page({
 
 `src:string` 图片地址
 
+##### width
+
+`width: number` 宽度
+
+##### height
+
+`height: number` 高度
+
+##### config
+
+`config: IFourDotsClipperConfig` 配置 
+
+``` typescript
+/**
+ * 配置
+ */
+export interface IFourDotsClipperConfig {
+    /**
+     * 允许三角形 
+     * 1.0.5
+     */
+    allowTriangle?: boolean
+    /** 渲染间隔 ms */
+    renderInterval?: number
+    /** canvas最大宽度 */
+    width?: number,
+    /** canvas最大高度 */
+    height?: number
+    /** 单位 */
+    unit?: keyof IFourDotsClipperConfigUnit
+    /** 颜色 线与点 */
+    color?: string,
+    /** 错颜色 线与点 */
+    errColor?: string
+    /** 点 */
+    point?: {
+        /** 颜色 点 */
+        color?: string,
+        /** 错颜色 点 */
+        errColor?: string,
+        /** 半径 */
+        raduis?: number,
+    },
+    /** 线 */
+    line?: {
+        /** 颜色 线 */
+        color?: string,
+        /** 错颜色 线 */
+        errColor?: string,
+        /** 宽度 */
+        width?: number
+    }
+}
+```
+
 #### 方法
 
 ##### clip()
