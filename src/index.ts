@@ -471,7 +471,6 @@ Component({
                 let pointsOrderByX: Vector2[] = [].concat(resultPoints).sort((a, b) => a.x - b.x)
                 let pointsOrderByY: Vector2[] = [].concat(resultPoints).sort((a, b) => a.y - b.y)
 
-                console.log(pointsOrderByX, pointsOrderByY);
 
                 /** 偏移量 */
                 let offsetMinX = pointsOrderByX[0].x;
@@ -492,7 +491,7 @@ Component({
                 m_result_canvas.width = +clip_img.width
                 m_result_canvas.height = +clip_img.height
                 m_result_context.scale(dpr, dpr);
-                
+
                 m_result_context.drawImage(clip_img, offsetMinX * dpr, offsetMinY * dpr, offsetWidth * dpr, offsetHeight * dpr, 0, 0, +clip_img.width / dpr, +clip_img.height / dpr)
                 base64 = m_result_canvas.toDataURL();
                 m_clip_context.restore();
@@ -516,7 +515,6 @@ Component({
             let { r_width, r_height, m_clip_context, m_point_context, m_context_rotate } = this.data;
             let tmp = degree * Math.PI / 180
             this.data.m_context_rotate += tmp;
-            console.log(tmp);
             // ctx2.translate(dx,dy);
             // m_clip_context.rotate(tmp)
             // m_point_context.translate(r_width / 2, r_height / 2)
