@@ -1,11 +1,6 @@
 
 import { Vector2 } from 'ru-toolkit-mathematics'
-export interface IFourDotsClipperBorad {
-    x1: number
-    y1: number
-    x2: number
-    y2: number
-}
+
 export interface IFourDotsClipperConfigUnit {
     px: string,
     /** 用于适配不同分辨率的机型 */
@@ -60,9 +55,9 @@ export interface IFourDotsClipperClipResult {
     /** 临时图片 */
     tempFilePath: string,
     /** 渲染的图片宽度 */
-    width: string,
+    width: number,
     /** 渲染的图片高度 */
-    height: string
+    height: number
 }
 /**
  * 缩放
@@ -157,6 +152,18 @@ const triangle = (points: Vector2[]): Vector2[] => {
     }
     return [];
 }
+/** 获取图片 */
+const createImage = (canvas: any, src: string): Promise<CanvasImageSource> => {
+    return new Promise((resolve, reject) => {
+        let img = canvas.createImage();
+        img.src = src;
+        img.onload = () => {
+            resolve(img)
+        }
+    })
+
+}
+
 /** 默认值 */
 const defaultConfig: IFourDotsClipperConfig = {
     allowTriangle: false,
@@ -204,6 +211,8 @@ Component({
         m_line_color: "",
         m_line_err_color: "",
         m_line_width: 0,
+        m_result_canvas: null,
+        m_result_context: null,
         m_point_canvas: null,
         m_point_context: null,
         m_clip_canvas: null,
@@ -252,24 +261,32 @@ Component({
 
             const dpr = wx.getSystemInfoSync().pixelRatio
             const q = this.createSelectorQuery();
-            console.log(q);
+            q.select('#result').fields({ node: true, size: true })
             q.select('#clip').fields({ node: true, size: true })
             q.select("#points").fields({ node: true, size: true })
+
             q.exec((res) => {
-                const m_clip_canvas = res[0].node;
+
+                const m_result_canvas = res[0].node;
+                const m_clip_canvas = res[1].node;
+                const m_point_canvas = res[2].node
+
+
+
+                const m_result_context = m_result_canvas.getContext('2d')
                 const m_clip_context = m_clip_canvas.getContext('2d')
+                const m_point_context = m_point_canvas.getContext('2d')
 
                 // 用于移动四个点
-                const m_point_canvas = res[1].node
-                const r_width = res[1].width;
-                const r_height = res[1].height;
+                const r_width = res[0].width;
+                const r_height = res[0].height;
                 const m_point_raduis = this.data.m_point_raduis;
-                const m_point_context = m_point_canvas.getContext('2d')
                 const b_width = r_width - m_point_raduis * 2
                 const b_height = r_height - m_point_raduis * 2
 
                 m_point_canvas.width = r_width * dpr
                 m_point_canvas.height = r_height * dpr
+
                 m_point_context.scale(dpr, dpr);
                 let img = m_point_canvas.createImage();
                 img.src = this.properties.src;
@@ -302,7 +319,13 @@ Component({
 
                     this.data.m_clip_canvas = m_clip_canvas
                     this.data.m_clip_context = m_clip_context
+
+                    this.data.m_result_canvas = m_result_canvas;
+                    this.data.m_result_context = m_result_context;
+
                     this.requestAnimationFrame();
+
+
                 };
             });
         }
@@ -363,6 +386,8 @@ Component({
             this.data.point = m_points;
             // 不允许三角形
             if (!m_allow_triangle) this.data.is_error = checkisPointInTranjgle;
+
+
         },
         touchstart(e) {
             let { m_points, m_point_raduis } = this.data;
@@ -387,28 +412,48 @@ Component({
         },
         /** 裁切 */
         async clip(): Promise<IFourDotsClipperClipResult> {
-            let { m_points, m_context_rotate, i_x, i_y, i_width, i_height, r_width, r_height, is_error, m_clip_canvas, m_clip_context, m_image, m_allow_triangle } = this.data;
+            let { m_context_rotate, i_x, i_y, i_width, i_height, r_width, r_height, is_error, m_clip_canvas, m_image, m_allow_triangle } = this.data;
+            let m_clip_context: CanvasRenderingContext2D = this.data.m_clip_context
+            let m_points: Vector2[] = this.data.m_points;
+            let m_point_raduis: Number = this.data.m_point_raduis
             return new Promise(async (resolve, reject) => {
                 if (is_error) return reject({ is_error })
-                m_clip_context.restore();
-                m_clip_context.clearRect(0, 0, r_width, r_height)
-                m_clip_context.save();
-                m_clip_context.beginPath();
-                m_clip_context.lineWidth = 0;
+
+                const dpr = wx.getSystemInfoSync().pixelRatio
 
                 m_points = sort(m_points);
                 // 三角形
                 let tp = triangle(m_points);
                 if (m_allow_triangle && tp.length > 0) m_points = tp
 
+
+                /** 点 */
+                // let pointsOrderByX = [].concat(m_points).sort((a, b) => a.x - b.x)
+                // let pointsOrderByY = [].concat(m_points).sort((a, b) => a.y - b.y)
+
+
+                /** 偏移量 */
+                // let offsetMinX = pointsOrderByX[0].x - i_x;
+                // let offsetMinY = pointsOrderByY[0].y - i_y;
+                // let offsetMaxX = pointsOrderByX[pointsOrderByX.length - 1].x
+                // let offsetMaxY = pointsOrderByY[pointsOrderByY.length - 1].y
+
+
+                m_clip_context.restore();
+                m_clip_context.clearRect(0, 0, r_width, r_height)
+                m_clip_context.save();
+                m_clip_context.beginPath();
+                m_clip_context.lineWidth = 0;
+
+
+                let resultPoints: Vector2[] = []
                 // 放置点的位置  
                 for (let i = 0; i < m_points.length; i++) {
                     let tmp = m_points[i]; i == 0 ? m_clip_context.moveTo(tmp.x - i_x, tmp.y - i_y) : m_clip_context.lineTo(tmp.x - i_x, tmp.y - i_y)
+                    resultPoints.push(Vector2.c(tmp.x - i_x, tmp.y - i_y))
                 }
                 m_clip_context.closePath();
                 m_clip_context.clip();
-
-
 
                 // 渲染图片
                 m_clip_context.translate(i_width / 2, i_height / 2)
@@ -422,22 +467,50 @@ Component({
                 m_clip_context.rotate(-m_context_rotate);
                 m_clip_context.translate(-i_width / 2, -i_height / 2)
 
-                // m_clip_context.drawImage(m_image, 0, 0, i_width, i_height);
+                /** 点 */
+                let pointsOrderByX: Vector2[] = [].concat(resultPoints).sort((a, b) => a.x - b.x)
+                let pointsOrderByY: Vector2[] = [].concat(resultPoints).sort((a, b) => a.y - b.y)
+
+                console.log(pointsOrderByX, pointsOrderByY);
+
+                /** 偏移量 */
+                let offsetMinX = pointsOrderByX[0].x;
+                let offsetMinY = pointsOrderByY[0].y;
+                let offsetMaxX = pointsOrderByX[pointsOrderByX.length - 1].x
+                let offsetMaxY = pointsOrderByY[pointsOrderByY.length - 1].y
+
+                let offsetWidth = offsetMaxX - offsetMinX
+                let offsetHeight = offsetMaxY - offsetMinY
 
                 let base64 = m_clip_canvas.toDataURL();
+
+                let m_result_canvas: HTMLCanvasElement = this.data.m_result_canvas
+                let m_result_context: CanvasRenderingContext2D = this.data.m_result_context;
+
+                let clip_img = await createImage(m_result_canvas, base64)
+
+                m_result_canvas.width = +clip_img.width
+                m_result_canvas.height = +clip_img.height
+                m_result_context.scale(dpr, dpr);
+                
+                m_result_context.drawImage(clip_img, offsetMinX * dpr, offsetMinY * dpr, offsetWidth * dpr, offsetHeight * dpr, 0, 0, +clip_img.width / dpr, +clip_img.height / dpr)
+                base64 = m_result_canvas.toDataURL();
+                m_clip_context.restore();
+                m_clip_context.clearRect(0, 0, r_width, r_height)
+                m_result_context.clearRect(0, 0, r_width, r_height)
                 let tempFilePath = await base64ToTempFilePath(base64)
                 resolve({
                     base64,
                     tempFilePath,
-                    width: i_width,
-                    height: i_height
+                    width: offsetWidth,
+                    height: offsetHeight
                 })
 
             })
         },
         /**
-         * 1.0.6 旋转
-         * @param degree 角度
+         * 1.0.x 旋转 不久的未来 哈哈哈哈
+          * @param degree 角度
          */
         rotate(degree: number) {
             let { r_width, r_height, m_clip_context, m_point_context, m_context_rotate } = this.data;

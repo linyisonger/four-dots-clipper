@@ -1,20 +1,21 @@
 :host {
   display: inline-flex;
-  overflow: hidden;
+  width: 600rpx;
+  height: 300rpx;
 }
 .fd-canvas {
   position: relative;
   display: inline-flex;
 }
-
-.clip {
-  width: var(--width);
-  height: var(--height);
-  margin: var(--margin);
-  position: absolute;
-  top: -100000%;
+.fd-canvas,
+.canvas {
+  width: inherit;
+  height: inherit;
 }
-.points {
-  width: calc(var(--width) + var(--margin) * 2);
-  height: calc(var(--height) + var(--margin) * 2);
+.result,
+.clip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  transform: translateY(-1000%);
 }

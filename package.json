@@ -7,6 +7,9 @@
     "typescript",
     "微信小程序"
   ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "gulp dev --develop",
     "watch": "gulp watch --develop --watch",
@@ -63,7 +66,6 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "ru-toolkit-mathematics": "^1.0.7",
-    "miniprogram-api-typings": "^2.12.0"
+    "ru-toolkit-mathematics": "^1.0.9-a1"
   }
 }

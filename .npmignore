@@ -15,3 +15,7 @@ docs
 miniprogram_dev
 node_modules
 coverage
+
+src
+yarn.lock
+tsconfig.json
