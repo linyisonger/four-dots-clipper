@@ -4,7 +4,7 @@ page {
   overflow-x: hidden;
 }
 
-#fpc,
+#cp,
 image {
   margin: 20px auto;
 }

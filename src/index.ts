@@ -1,176 +1,11 @@
 
 import { Vector2 } from 'ru-toolkit-mathematics'
-
-export interface IFourDotsClipperConfigUnit {
-    px: string,
-    /** 用于适配不同分辨率的机型 */
-    rpx: string
-}
-/**
- * 配置
- */
-export interface IFourDotsClipperConfig {
-    /**
-     * 允许三角形 
-     * 1.0.5
-     */
-    allowTriangle?: boolean
-    /** 渲染间隔 ms */
-    renderInterval?: number
-    /** canvas最大宽度 */
-    width?: number,
-    /** canvas最大高度 */
-    height?: number
-    /** 单位 */
-    unit?: keyof IFourDotsClipperConfigUnit
-    /** 颜色 线与点 */
-    color?: string,
-    /** 错颜色 线与点 */
-    errColor?: string
-    /** 点 */
-    point?: {
-        /** 颜色 点 */
-        color?: string,
-        /** 错颜色 点 */
-        errColor?: string,
-        /** 半径 */
-        raduis?: number,
-    },
-    /** 线 */
-    line?: {
-        /** 颜色 线 */
-        color?: string,
-        /** 错颜色 线 */
-        errColor?: string,
-        /** 宽度 */
-        width?: number
-    }
-}
-/**
- * 裁切的返回值
- */
-export interface IFourDotsClipperClipResult {
-    /** BASE64字符串 */
-    base64: string,
-    /** 临时图片 */
-    tempFilePath: string,
-    /** 渲染的图片宽度 */
-    width: number,
-    /** 渲染的图片高度 */
-    height: number
-}
-/**
- * 缩放
- * @param ow 源图宽 
- * @param oh 源图高
- * @param tw 目标宽
- * @param th 目标高
- */
-const scaling = (ow: number, oh: number, tw: number, th: number) => {
-    let s = 0;
-    if (ow > oh) {
-        s = ow / oh;
-        ow = tw;
-        oh = ow / s
-    }
-    else {
-        s = ow / oh;
-        oh = th;
-        ow = oh * s
-    }
-
-    if (th < oh) {
-        s = ow / oh;
-        oh = th;
-        ow = oh * s
-    }
-
-    if (tw < ow) {
-        s = ow / oh;
-        ow = tw;
-        oh = ow / s
-    }
-    return { ow, oh }
-}
-/**
- * 获取时间戳
- */
-const timestamp = () => {
-    return new Date().getTime();
-}
-/**
- * 点排序
- * @param points 
- */
-const sort = (points: Vector2[]) => {
-
-    let a = points[0]
-    let b = points[1]
-    let c = points[2]
-    let d = points[3]
-    if (Vector2.checkCross(a, b, c, d)) {
-        b = points[2]
-        c = points[1]
-    }
-    else if (Vector2.checkCross(a, d, c, b)) {
-        a = points[1];
-        b = points[0]
-    }
-    return [a, b, c, d]
-}
-/**
- * 获取临时图片
- * @param base64 
- * @returns 
- */
-const base64ToTempFilePath = (base64: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const fs = wx.getFileSystemManager();
-        const times = new Date().getTime();
-        const tempFilePath = wx.env.USER_DATA_PATH + '/' + times + '.png';
-        fs.writeFile({
-            filePath: tempFilePath,
-            data: base64.split(',')[1],
-            encoding: 'base64',
-            success: (res) => {
-                resolve(tempFilePath)
-            },
-            fail: (err) => {
-                reject(err)
-            }
-        });
-    })
-}
-/** 三角形 */
-const triangle = (points: Vector2[]): Vector2[] => {
-    for (let i = 0; i < points.length; i++) {
-        let curr = points[i];
-        let other = points.filter((p, j) => i != j);
-        if (Vector2.checkInTriangle(curr, other[0], other[1], other[2])) {
-            return other;
-        }
-    }
-    return [];
-}
-/** 获取图片 */
-const createImage = (canvas: any, src: string): Promise<CanvasImageSource> => {
-    return new Promise((resolve, reject) => {
-        let img = canvas.createImage();
-        img.src = src;
-        img.onload = () => {
-            resolve(img)
-        }
-    })
-
-}
+import { sort, scaling, timestamp, triangle, base64ToTempFilePath, createImage, IFourDotsClipperClipResult, IFourDotsClipperConfig } from './utils'
 
 /** 默认值 */
 const defaultConfig: IFourDotsClipperConfig = {
     allowTriangle: false,
     renderInterval: 20,
-    width: 600,
-    height: 300,
-    unit: 'rpx',
     color: "#B4CF66",
     errColor: "#FF5A33",
     point: {
@@ -235,9 +70,6 @@ Component({
         ready() {
             let config = this.properties.config;
 
-            let m_width = config?.width || this.properties.width || defaultConfig.width;
-            let m_height = config?.height || this.properties.height || defaultConfig.height;
-            let m_unit = config?.unit || defaultConfig.unit;
             let m_point_raduis = config?.point?.raduis || defaultConfig.point.raduis
 
             let m_point_color = config?.point?.color || config?.color || defaultConfig.color;
@@ -257,7 +89,8 @@ Component({
             this.data.m_line_width = m_line_width;
             this.data.m_allow_triangle = m_allow_triangle;
 
-            this.setData({ m_width, m_height, m_unit, m_point_raduis })
+            this.data.m_point_raduis = m_point_raduis;
+
 
             const dpr = wx.getSystemInfoSync().pixelRatio
             const q = this.createSelectorQuery();

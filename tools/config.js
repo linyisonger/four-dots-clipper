@@ -12,7 +12,7 @@ const dev = path.join(demoDist, 'components')
 const dist = path.resolve(__dirname, '../dist')
 
 module.exports = {
-  entry: ['index'],
+  entry: ['utils', 'index', 'components/cut-picture/index',],
 
   isDev,
   isWatch,
@@ -40,39 +40,41 @@ module.exports = {
     target: 'node',
     externals: [nodeExternals()], // 忽略 node_modules
     module: {
-      rules: [{
-        test: /\.js$/i,
-        use: [{
-          loader: 'thread-loader',
-        }, {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-          },
+      rules: [
+        // {
+        //   test: /\.js$/i,
+        //   use: [{
+        //     loader: 'thread-loader',
+        //   }, {
+        //     loader: 'babel-loader',
+        //     options: {
+        //       cacheDirectory: true,
+        //     },
+        //   }],
+        //   exclude: /node_modules/
+        // },
+        {
+          test: /\.ts$/,
+          exclude: /node_modules/,
+          use: [{
+            loader: 'thread-loader',
+          }, {
+            loader: 'babel-loader',
+            options: {
+              cacheDirectory: true,
+            },
+          }, {
+            loader: 'ts-loader',
+            options: {
+              appendTsSuffixTo: [/\.vue$/],
+              happyPackMode: true,
+            },
+          }],
         }],
-        exclude: /node_modules/
-      }, {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: [{
-          loader: 'thread-loader',
-        }, {
-          loader: 'babel-loader',
-          options: {
-            cacheDirectory: true,
-          },
-        }, {
-          loader: 'ts-loader',
-          options: {
-            appendTsSuffixTo: [/\.vue$/],
-            happyPackMode: true,
-          },
-        }],
-      }],
     },
     resolve: {
       modules: [src, 'node_modules'],
-      extensions: ['.js', '.json'],
+      extensions: ['.js', '.json', '.ts'],
     },
     plugins: [
       new webpack.DefinePlugin({}),

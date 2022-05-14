@@ -1,5 +1,5 @@
 <view class="he">组件</view>
-<fp-clipper id="fpc" src="https://picsum.photos/150/100" config="{{config}}"></fp-clipper>
+<cut-picture id="cp"></cut-picture>
 <view class="op">
   <button type="primary" bindtap="clip">裁切</button>
   <!-- <button type="primary" bindtap="rotate">旋转</button> -->

@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "cut-picture": "../../components/components/cut-picture/index"
+  },
+  "navigationBarTitleText": "裁切透明",
+  "disableScroll": true
+}

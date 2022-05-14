@@ -1,6 +1,7 @@
 {
   "component": true,
   "usingComponents": {
+    "cut-picture": "./components/cut-picture/index"
   },
   "componentGenerics": {
     "genericsTest": true
