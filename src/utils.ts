@@ -1,4 +1,10 @@
 import { Vector2 } from 'ru-toolkit-mathematics'
+
+export const errConfig = {
+    NotAllowTriangle: { errCode: 1001, errMsg: "不允许三角形裁切" }
+}
+
+
 /**
  * 裁切图片clip方法参数
  */

@@ -12,7 +12,7 @@
   width: inherit;
   height: inherit;
 }
-.result,
+.cut,
 .clip {
   position: absolute;
   left: 0;

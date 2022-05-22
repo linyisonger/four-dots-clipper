@@ -1,6 +1,54 @@
 
 import { Vector2 } from 'ru-toolkit-mathematics'
-import { sort, scaling, timestamp, triangle, base64ToTempFilePath, createImage, IFourDotsClipperClipResult, IFourDotsClipperConfig } from './utils'
+import { sort, scaling, timestamp, triangle, base64ToTempFilePath, createImage, IFourDotsClipperClipResult, IFourDotsClipperConfig, IClipPictureClipParams, errConfig } from './utils'
+
+interface IData {
+    /** 操作的点 */
+    points: Vector2[]
+    /** 操作点的半径、颜色、错误颜色 */
+    pointRaduis: number
+    pointColor: string
+    pointErrColor: string
+    /** 操作线的宽度、颜色、错误颜色 */
+    lineWidth: number
+    lineColor: string
+    lineErrColor: string
+    /** 渲染间隔 */
+    renderInterval: number
+    /** 是否允许三角形 */
+    allowTriangle: boolean
+    /** 操作层canvas */
+    operateCanvas: any
+    operateContext: CanvasRenderingContext2D
+    /** 操作层宽度、高度 */
+    operateWidth: number
+    operateHeight: number
+    /** 盒子宽度、高度 */
+    boxWidth: number
+    boxHeight: number
+    /** 图片资源 */
+    image: CanvasImageSource
+    /** 图片X、Y坐标 */
+    imageX: number
+    imageY: number
+    /** 图片宽度、高度 */
+    imageWidth: number
+    imageHeight: number
+    /** 裁切层canvas */
+    clipCanvas: any
+    clipContext: CanvasRenderingContext2D
+    /** 移动索引 */
+    moveingIndex: number
+    /** 最后渲染时间 */
+    lastRenderTime: number
+}
+
+interface ISelectorQueryRes {
+    height: number
+    node: any
+    nodeCanvasType: string
+    width: number
+}
 
 /** 默认值 */
 const defaultConfig: IFourDotsClipperConfig = {
@@ -17,328 +65,341 @@ const defaultConfig: IFourDotsClipperConfig = {
 }
 /**
  * @Author 林一怂儿
- * @Date 2022/05/03 02:58:01
- * 
- * 
- * 当 width < 2 * raduis || height < 2 * raduis;
- * 自动 width = 默认值 && height = 默认值 ;
+ * @Date 2022/05/03 02:58:01 
  */
 Component({
     properties: {
         /** 图片地址 */
         src: String,
-        /** 宽度 */
-        width: Number,
-        /** 高度 */
-        height: Number,
         /** 配置 */
         config: Object
     },
     data: {
-        /** 记录四个点 */
-        m_points: [] as Vector2[],
-        m_width: 0,
-        m_height: 0,
-        m_unit: "",
-        m_point_color: "",
-        m_point_err_color: "",
-        m_point_raduis: 0,
-        m_line_color: "",
-        m_line_err_color: "",
-        m_line_width: 0,
-        m_result_canvas: null,
-        m_result_context: null,
-        m_point_canvas: null,
-        m_point_context: null,
-        m_clip_canvas: null,
-        m_clip_context: null,
-        m_image: null,
-        m_context_rotate: 0,
-        r_width: 0,
-        r_height: 0,
-        b_width: 0,
-        b_height: 0,
-        i_x: 0,
-        i_y: 0,
-        i_width: 0,
-        i_height: 0,
-        m_moveing: -1,
-        lasttime: 0,
-        is_error: false
-    },
+        points: [],
+        pointRaduis: 0,
+        pointColor: "",
+        pointErrColor: "",
+        lineWidth: 0,
+        lineColor: "",
+        lineErrColor: "",
+        renderInterval: 0,
+        allowTriangle: false,
+        operateCanvas: null,
+        operateContext: null,
+        operateWidth: 0,
+        operateHeight: 0,
+        boxWidth: 0,
+        boxHeight: 0,
+        image: null,
+        imageX: 0,
+        imageY: 0,
+        imageWidth: 0,
+        imageHeight: 0,
+        clipCanvas: null,
+        clipContext: null,
+        moveingIndex: -1,
+        lastRenderTime: 0,
+    } as IData,
     lifetimes: {
         ready() {
-            let config = this.properties.config;
+            /** 获取配置 */
+            let config: IFourDotsClipperConfig = this.properties.config;
 
-            let m_point_raduis = config?.point?.raduis || defaultConfig.point.raduis
-
-            let m_point_color = config?.point?.color || config?.color || defaultConfig.color;
-            let m_point_err_color = config?.point?.errColor || config?.errColor || defaultConfig.errColor;
-
-            let m_line_color = config?.line?.color || config?.color || defaultConfig.color;
-            let m_line_err_color = config?.line?.errColor || config?.errColor || defaultConfig.errColor;
-            let m_line_width = config?.line?.width || defaultConfig.line.width
-            let m_render_interval = config?.renderInterval || defaultConfig.renderInterval
-            let m_allow_triangle = config?.allowTriangle || defaultConfig.allowTriangle
-
-            this.data.m_render_interval = m_render_interval;
-            this.data.m_point_color = m_point_color;
-            this.data.m_point_err_color = m_point_err_color;
-            this.data.m_line_color = m_line_color;
-            this.data.m_line_err_color = m_line_err_color;
-            this.data.m_line_width = m_line_width;
-            this.data.m_allow_triangle = m_allow_triangle;
-
-            this.data.m_point_raduis = m_point_raduis;
-
+            /** 操作点的半径、颜色、错误颜色 */
+            let pointRaduis = config?.point?.raduis || defaultConfig.point.raduis;
+            let pointColor = config?.point?.color || config?.color || defaultConfig.color;
+            let pointErrColor = config?.point?.errColor || config?.errColor || defaultConfig.errColor;
+            /** 操作线的宽度、颜色、错误颜色 */
+            let lineWidth = config?.line?.width || defaultConfig.line.width;
+            let lineColor = config?.point?.color || config?.color || defaultConfig.color;
+            let lineErrColor = config?.line?.errColor || config?.errColor || defaultConfig.errColor;
+            /** 渲染间隔 */
+            let renderInterval = config?.renderInterval || defaultConfig.renderInterval;
+            /** 是否允许三角形 */
+            let allowTriangle = config?.allowTriangle || defaultConfig.allowTriangle;
 
             const dpr = wx.getSystemInfoSync().pixelRatio
             const q = this.createSelectorQuery();
-            q.select('#result').fields({ node: true, size: true })
             q.select('#clip').fields({ node: true, size: true })
-            q.select("#points").fields({ node: true, size: true })
+            q.select("#operate").fields({ node: true, size: true })
 
-            q.exec((res) => {
+            q.exec(async (res: ISelectorQueryRes[]) => {
 
-                const m_result_canvas = res[0].node;
-                const m_clip_canvas = res[1].node;
-                const m_point_canvas = res[2].node
-
-
-
-                const m_result_context = m_result_canvas.getContext('2d')
-                const m_clip_context = m_clip_canvas.getContext('2d')
-                const m_point_context = m_point_canvas.getContext('2d')
-
-                // 用于移动四个点
-                const r_width = res[0].width;
-                const r_height = res[0].height;
-                const m_point_raduis = this.data.m_point_raduis;
-                const b_width = r_width - m_point_raduis * 2
-                const b_height = r_height - m_point_raduis * 2
-
-                m_point_canvas.width = r_width * dpr
-                m_point_canvas.height = r_height * dpr
-
-                m_point_context.scale(dpr, dpr);
-                let img = m_point_canvas.createImage();
-                img.src = this.properties.src;
-                img.onload = () => {
-                    let { ow, oh } = scaling(img.width, img.height, b_width, b_height)
-                    let i_x = (b_width - ow) / 2 + m_point_raduis;
-                    let i_y = (b_height - oh) / 2 + m_point_raduis;
+                const operateCanvas = res[1].node
+                const operateContext: CanvasRenderingContext2D = operateCanvas.getContext('2d')
+                const operateWidth = res[1].width;
+                const operateHeight = res[1].height;
 
 
+                const boxWidth = operateWidth - pointRaduis * 2;
+                const boxHeight = operateHeight - pointRaduis * 2;
 
-                    m_point_context.drawImage(img, i_x, i_y, ow, oh);
-                    this.data.i_x = i_x;
-                    this.data.i_y = i_y;
-                    this.data.b_width = b_width;
-                    this.data.b_height = b_height;
-                    this.data.r_width = r_width;
-                    this.data.r_height = r_height;
-                    this.data.i_width = ow;
-                    this.data.i_height = oh;
-                    this.data.m_point_canvas = m_point_canvas;
-                    this.data.m_point_context = m_point_context;
-                    this.data.m_image = img;
-                    this.data.m_points = [Vector2.c(i_x, i_y), Vector2.c(i_x + ow, i_y), Vector2.c(i_x + ow, i_y + oh), Vector2.c(i_x, i_y + oh)]
+                operateCanvas.width = operateWidth * dpr;
+                operateCanvas.height = operateHeight * dpr;
+
+                const image = await createImage(operateCanvas, this.properties.src)
+
+                const { ow, oh } = scaling(+image.width, +image.height, boxWidth, boxHeight)
+
+                const imageWidth = ow;
+                const imageHeight = oh;
+
+                const imageX = (boxWidth - imageWidth) / 2 + pointRaduis;
+                const imageY = (boxHeight - imageHeight) / 2 + pointRaduis;
+
+
+                operateContext.drawImage(image, imageX, imageY, imageWidth, imageHeight);
+
+                operateContext.scale(dpr, dpr);
+
+
+                const points = [
+                    Vector2.c(imageX, imageY),
+                    Vector2.c(imageX + imageWidth, imageY),
+                    Vector2.c(imageX + imageWidth, imageY + imageHeight),
+                    Vector2.c(imageX, imageY + imageHeight)
+                ];
+
+                const clipCanvas = res[0].node
+                const clipContext: CanvasRenderingContext2D = clipCanvas.getContext('2d')
+
+                clipCanvas.width = ow * dpr
+                clipCanvas.height = oh * dpr
+                clipContext.scale(dpr, dpr);
 
 
 
-                    m_clip_canvas.width = ow * dpr
-                    m_clip_canvas.height = oh * dpr
-                    m_clip_context.scale(dpr, dpr);
+                this.data.points = points;
 
-                    this.data.m_clip_canvas = m_clip_canvas
-                    this.data.m_clip_context = m_clip_context
+                this.data.operateCanvas = operateCanvas;
+                this.data.operateContext = operateContext;
 
-                    this.data.m_result_canvas = m_result_canvas;
-                    this.data.m_result_context = m_result_context;
+                this.data.operateWidth = operateWidth;
+                this.data.operateHeight = operateHeight;
 
-                    this.requestAnimationFrame();
+                this.data.boxWidth = boxWidth;
+                this.data.boxHeight = boxHeight;
 
 
-                };
+                this.data.clipCanvas = clipCanvas;
+                this.data.clipContext = clipContext;
+
+                this.data.image = image;
+                this.data.imageX = imageX;
+                this.data.imageY = imageY;
+                this.data.imageWidth = imageWidth;
+                this.data.imageHeight = imageHeight;
+
+                this.data.pointColor = pointColor;
+                this.data.pointErrColor = pointErrColor;
+                this.data.pointRaduis = pointRaduis;
+
+                this.data.lineColor = lineColor;
+                this.data.lineErrColor = lineErrColor;
+                this.data.lineWidth = lineWidth;
+
+                this.data.renderInterval = renderInterval;
+                this.data.allowTriangle = allowTriangle;
+
+                this.render()
+
             });
         }
     },
     methods: {
-        requestAnimationFrame() {
-            let { m_context_rotate, m_point_context, m_allow_triangle, m_image, i_x, i_y, i_width, i_height, r_width, r_height, m_line_color, m_line_err_color, m_line_width, m_points, m_point_raduis, m_point_color, m_point_err_color } = this.data;
-            m_point_context.clearRect(0, 0, r_width, r_height)
+        render() {
+            let {
+                operateContext,
+                operateWidth,
+                operateHeight,
+                image,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+
+                lineColor,
+                lineErrColor,
+                lineWidth,
+
+                pointRaduis,
+                pointColor,
+                pointErrColor,
+                points,
+
+            }: IData = this.data;
+
+            // 清空画布
+            operateContext.clearRect(0, 0, operateWidth, operateHeight);
 
             // 渲染图片
-            m_point_context.translate(r_width / 2, r_height / 2)
-            m_point_context.rotate(m_context_rotate);
-            m_point_context.translate(-r_width / 2, -r_height / 2)
-            m_point_context.drawImage(m_image, i_x, i_y, i_width, i_height);
+            // m_point_context.translate(r_width / 2, r_height / 2)
+            // m_point_context.rotate(m_context_rotate);
+            // m_point_context.translate(-r_width / 2, -r_height / 2)
+            // console.log(image, imageX, imageY, imageWidth, imageHeight);
+
+            operateContext.drawImage(image, imageX, imageY, imageWidth, imageHeight);
 
 
-            // 还原
-            m_point_context.translate(r_width / 2, r_height / 2)
-            m_point_context.rotate(-m_context_rotate);
-            m_point_context.translate(-r_width / 2, -r_height / 2)
+            operateContext.beginPath();
+            operateContext.strokeStyle = lineColor;
+            operateContext.lineWidth = lineWidth;
+            operateContext.fillStyle = pointColor;
+            // 三角行的点
+            const trianglePoints = triangle(points);
 
-
-            m_point_context.beginPath();
-            m_point_context.strokeStyle = m_line_color;
-            m_point_context.lineWidth = m_line_width;
-            m_point_context.fillStyle = m_point_color;
-
-            let tp = triangle(m_points);
-            let checkisPointInTranjgle = tp.length > 0;
-
-            // 在的话
-            if (checkisPointInTranjgle) {
-                m_point_context.strokeStyle = m_line_err_color;
-                m_point_context.fillStyle = m_point_err_color;
-                for (let i = 0; i < tp.length; i++) {
-                    let tmp = tp[i];
-                    i == 0 ? m_point_context.moveTo(tmp.x, tmp.y) : m_point_context.lineTo(tmp.x, tmp.y)
+            // 检查是否存在
+            if (trianglePoints.length > 0) {
+                operateContext.strokeStyle = lineErrColor;
+                operateContext.fillStyle = pointErrColor;
+                for (let i = 0; i < trianglePoints.length; i++) {
+                    let tmp = trianglePoints[i];
+                    i == 0 ? operateContext.moveTo(tmp.x, tmp.y) : operateContext.lineTo(tmp.x, tmp.y)
                 }
             }
             else {
-                m_points = sort(m_points);
-                for (let i = 0; i < m_points.length; i++) {
-                    let tmp = m_points[i];
-                    i == 0 ? m_point_context.moveTo(tmp.x, tmp.y) : m_point_context.lineTo(tmp.x, tmp.y)
+                points = sort(points);
+                for (let i = 0; i < points.length; i++) {
+                    let tmp = points[i];
+                    i == 0 ? operateContext.moveTo(tmp.x, tmp.y) : operateContext.lineTo(tmp.x, tmp.y)
                 }
             }
-            m_point_context.closePath();
-            m_point_context.stroke()
+            operateContext.closePath();
+            operateContext.stroke()
             // 点
-            for (let i = 0; i < m_points.length; i++) {
-                m_point_context.lineWidth = 1;
-                let tmp = m_points[i];
-                m_point_context.beginPath();
-                m_point_context.arc(tmp.x, tmp.y, m_point_raduis - 1, 0, 2 * Math.PI);
-                m_point_context.stroke();
-                m_point_context.fill();
+            for (let i = 0; i < points.length; i++) {
+                operateContext.lineWidth = 1;
+                let tmp = points[i];
+                operateContext.beginPath();
+                operateContext.arc(tmp.x, tmp.y, pointRaduis - 1, 0, 2 * Math.PI);
+                operateContext.stroke();
+                operateContext.fill();
             }
-            this.data.point = m_points;
-            // 不允许三角形
-            if (!m_allow_triangle) this.data.is_error = checkisPointInTranjgle;
+            this.data.point = points;
 
+            // 还原
+            // m_point_context.translate(r_width / 2, r_height / 2)
+            // m_point_context.rotate(-m_context_rotate);
+            // m_point_context.translate(-r_width / 2, -r_height / 2)
 
         },
         touchstart(e) {
-            let { m_points, m_point_raduis } = this.data;
+            let { points, pointRaduis }: IData = this.data;
             let { x, y } = e.changedTouches[0]
-            this.data.m_moveing = m_points.findIndex(p => Math.abs(p.x - x) < m_point_raduis && Math.abs(p.y - y) < m_point_raduis);
-            this.requestAnimationFrame()
+            this.data.moveingIndex = points.findIndex(p => Math.abs(p.x - x) < pointRaduis && Math.abs(p.y - y) < pointRaduis);
+            this.render();
         },
         touchmove(e) {
-            let { m_moveing, m_points, lasttime, i_x, i_y, i_width, i_height, m_render_interval } = this.data;
-            if (m_moveing == -1 || timestamp() - lasttime < m_render_interval) return;
-            this.data.lasttime = timestamp();
+
+            let {
+                moveingIndex,
+                renderInterval,
+                points,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+                lastRenderTime,
+            }: IData = this.data
+            if (moveingIndex == -1) return;
+            if (timestamp() - lastRenderTime < renderInterval) return;
+            this.data.lastRenderTime = timestamp();
+
             let { x, y } = e.changedTouches[0]
+            if (imageX > x) points[moveingIndex].x = imageX;
+            else if (x > imageX + imageWidth) points[moveingIndex].x = imageX + imageWidth
+            else points[moveingIndex].x = x;
 
-            if (i_x > x) m_points[m_moveing].x = i_x;
-            else if (x > i_x + i_width) m_points[m_moveing].x = i_x + i_width
-            else m_points[m_moveing].x = x;
+            if (imageY > y) points[moveingIndex].y = imageY;
+            else if (y > imageY + imageHeight) points[moveingIndex].y = imageY + imageHeight
+            else points[moveingIndex].y = y;
 
-            if (i_y > y) m_points[m_moveing].y = i_y;
-            else if (y > i_y + i_height) m_points[m_moveing].y = i_y + i_height
-            else m_points[m_moveing].y = y;
-            this.requestAnimationFrame();
+            this.render();
         },
         /** 裁切 */
         async clip(): Promise<IFourDotsClipperClipResult> {
-            let { m_context_rotate, i_x, i_y, i_width, i_height, r_width, r_height, is_error, m_clip_canvas, m_image, m_allow_triangle } = this.data;
-            let m_clip_context: CanvasRenderingContext2D = this.data.m_clip_context
-            let m_points: Vector2[] = this.data.m_points;
-            let m_point_raduis: Number = this.data.m_point_raduis
-            return new Promise(async (resolve, reject) => {
-                if (is_error) return reject({ is_error })
+            let {
+                image,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+                clipCanvas,
+                clipContext,
+                points,
 
-                const dpr = wx.getSystemInfoSync().pixelRatio
+                pointRaduis,
 
-                m_points = sort(m_points);
-                // 三角形
-                let tp = triangle(m_points);
-                if (m_allow_triangle && tp.length > 0) m_points = tp
+                allowTriangle,
 
+                operateWidth,
+                operateHeight,
+            }: IData = this.data;
 
-                /** 点 */
-                // let pointsOrderByX = [].concat(m_points).sort((a, b) => a.x - b.x)
-                // let pointsOrderByY = [].concat(m_points).sort((a, b) => a.y - b.y)
+            const dpr = wx.getSystemInfoSync().pixelRatio
 
+            points = sort(points);
+            // 三角形
+            let trianglePoints = triangle(points);
 
-                /** 偏移量 */
-                // let offsetMinX = pointsOrderByX[0].x - i_x;
-                // let offsetMinY = pointsOrderByY[0].y - i_y;
-                // let offsetMaxX = pointsOrderByX[pointsOrderByX.length - 1].x
-                // let offsetMaxY = pointsOrderByY[pointsOrderByY.length - 1].y
+            if (allowTriangle && trianglePoints.length > 0) points = trianglePoints
+            else if (!allowTriangle && trianglePoints.length > 0) throw errConfig.NotAllowTriangle;
 
+            clipContext.restore();
+            clipContext.clearRect(0, 0, operateWidth, operateHeight)
+            clipContext.save();
+            clipContext.beginPath();
+            clipContext.lineWidth = 0;
 
-                m_clip_context.restore();
-                m_clip_context.clearRect(0, 0, r_width, r_height)
-                m_clip_context.save();
-                m_clip_context.beginPath();
-                m_clip_context.lineWidth = 0;
+            for (let i = 0; i < points.length; i++) {
+                let tmp = points[i];
+                i == 0 ? clipContext.moveTo(tmp.x - imageX, tmp.y - imageY) : clipContext.lineTo(tmp.x - imageX, tmp.y - imageY)
+            }
+            clipContext.closePath();
+            clipContext.clip();
 
-
-                let resultPoints: Vector2[] = []
-                // 放置点的位置  
-                for (let i = 0; i < m_points.length; i++) {
-                    let tmp = m_points[i]; i == 0 ? m_clip_context.moveTo(tmp.x - i_x, tmp.y - i_y) : m_clip_context.lineTo(tmp.x - i_x, tmp.y - i_y)
-                    resultPoints.push(Vector2.c(tmp.x - i_x, tmp.y - i_y))
-                }
-                m_clip_context.closePath();
-                m_clip_context.clip();
-
-                // 渲染图片
-                m_clip_context.translate(i_width / 2, i_height / 2)
-                m_clip_context.rotate(m_context_rotate);
-                m_clip_context.translate(-i_width / 2, -i_height / 2)
-                m_clip_context.drawImage(m_image, 0, 0, i_width, i_height);
+            // 渲染图片
+            // m_clip_context.translate(i_width / 2, i_height / 2)
+            // m_clip_context.rotate(m_context_rotate);
+            // m_clip_context.translate(-i_width / 2, -i_height / 2)
+            clipContext.drawImage(image, 0, 0, imageWidth, imageHeight);
 
 
-                // 还原
-                m_clip_context.translate(i_width / 2, i_height / 2)
-                m_clip_context.rotate(-m_context_rotate);
-                m_clip_context.translate(-i_width / 2, -i_height / 2)
-
-                /** 点 */
-                let pointsOrderByX: Vector2[] = [].concat(resultPoints).sort((a, b) => a.x - b.x)
-                let pointsOrderByY: Vector2[] = [].concat(resultPoints).sort((a, b) => a.y - b.y)
+            // 还原
+            // m_clip_context.translate(i_width / 2, i_height / 2)
+            // m_clip_context.rotate(-m_context_rotate);
+            // m_clip_context.translate(-i_width / 2, -i_height / 2)
 
 
-                /** 偏移量 */
-                let offsetMinX = pointsOrderByX[0].x;
-                let offsetMinY = pointsOrderByY[0].y;
-                let offsetMaxX = pointsOrderByX[pointsOrderByX.length - 1].x
-                let offsetMaxY = pointsOrderByY[pointsOrderByY.length - 1].y
+            /** 偏移量 */
+            let offsetMinX = 9999;
+            let offsetMinY = 9999;
+            let offsetMaxX = -9999
+            let offsetMaxY = -9999;
+            for (let i = 0; i < points.length; i++) {
+                if (points[i].x < offsetMinX) offsetMinX = points[i].x;
+                if (points[i].y < offsetMinY) offsetMinY = points[i].y;
+                if (points[i].x > offsetMaxX) offsetMaxX = points[i].x;
+                if (points[i].y > offsetMaxY) offsetMaxY = points[i].y;
+            }
+            let offsetWidth = offsetMaxX - offsetMinX
+            let offsetHeight = offsetMaxY - offsetMinY
 
-                let offsetWidth = offsetMaxX - offsetMinX
-                let offsetHeight = offsetMaxY - offsetMinY
+            offsetMinX -= imageX;
+            offsetMinY -= imageY;
 
-                let base64 = m_clip_canvas.toDataURL();
+            let base64 = clipCanvas.toDataURL();
+            clipContext.restore();
+            clipContext.clearRect(0, 0, operateWidth, operateHeight)
 
-                let m_result_canvas: HTMLCanvasElement = this.data.m_result_canvas
-                let m_result_context: CanvasRenderingContext2D = this.data.m_result_context;
+            return await this.selectComponent("#cp").clip({
+                src: base64,
+                x: offsetMinX * dpr,
+                y: offsetMinY * dpr,
+                width: offsetWidth * dpr,
+                height: offsetHeight * dpr
+            } as IClipPictureClipParams)
 
-                let clip_img = await createImage(m_result_canvas, base64)
-
-                m_result_canvas.width = +clip_img.width
-                m_result_canvas.height = +clip_img.height
-                m_result_context.scale(dpr, dpr);
-
-                m_result_context.drawImage(clip_img, offsetMinX * dpr, offsetMinY * dpr, offsetWidth * dpr, offsetHeight * dpr, 0, 0, +clip_img.width / dpr, +clip_img.height / dpr)
-                base64 = m_result_canvas.toDataURL();
-                m_clip_context.restore();
-                m_clip_context.clearRect(0, 0, r_width, r_height)
-                m_result_context.clearRect(0, 0, r_width, r_height)
-                let tempFilePath = await base64ToTempFilePath(base64)
-                resolve({
-                    base64,
-                    tempFilePath,
-                    width: offsetWidth,
-                    height: offsetHeight
-                })
-
-            })
         },
         /**
          * 1.0.x 旋转 不久的未来 哈哈哈哈

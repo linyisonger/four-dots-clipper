@@ -1,5 +1,5 @@
 <view class="fd-canvas">
-    <canvas type="2d" class="canvas result" id="result"></canvas>
+    <cut-picture class="canvas cut" id="cp"></cut-picture>
     <canvas type="2d" class="canvas clip" id="clip"></canvas>
-    <canvas type="2d" class="canvas points" id="points" bindtouchstart="touchstart" bindtouchmove="touchmove"></canvas>
+    <canvas type="2d" class="canvas operate" id="operate" bindtouchstart="touchstart" bindtouchmove="touchmove"></canvas>
 </view>

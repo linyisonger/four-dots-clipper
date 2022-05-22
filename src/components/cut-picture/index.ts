@@ -1,6 +1,4 @@
 import { base64ToTempFilePath, createImage, IClipPictureClipParams } from '../../utils'
-
-
 Component({
     data: {
         clipCanvas: null,
@@ -25,14 +23,12 @@ Component({
          * @returns 
          */
         async clip(p: IClipPictureClipParams) {
-            const dpr = wx.getSystemInfoSync().pixelRatio
             const clipCanvas: HTMLCanvasElement = this.data.clipCanvas
             const clipContext: CanvasRenderingContext2D = this.data.clipContext;
             const clipImage = await createImage(clipCanvas, p.src);
-            clipCanvas.width = +clipImage.width
-            clipCanvas.height = +clipImage.height
-            clipContext.scale(dpr, dpr);
-            clipContext.drawImage(clipImage, p.x, p.y, p.width, p.height, 0, 0, +clipImage.width / dpr, +clipImage.height / dpr)
+            clipCanvas.width = p.width
+            clipCanvas.height = p.height
+            clipContext.drawImage(clipImage, p.x, p.y, p.width, p.height, 0, 0, p.width, p.height)
             const base64 = clipCanvas.toDataURL();
             clipContext.clearRect(0, 0, +clipImage.width, +clipImage.height)
             const tempFilePath = await base64ToTempFilePath(base64)
