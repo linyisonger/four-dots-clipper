@@ -1,6 +1,6 @@
 {
   "name": "four-dots-clipper",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "这是一个很'常用'的四点裁切组件",
   "main": "dist/index.js",
   "keywords": [
