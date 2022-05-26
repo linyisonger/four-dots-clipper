@@ -31,6 +31,8 @@ interface IData {
     /** 图片X、Y坐标 */
     imageX: number
     imageY: number
+    /** 图片旋转角度 */
+    imageAngle: number
     /** 图片宽度、高度 */
     imageWidth: number
     imageHeight: number
@@ -99,6 +101,7 @@ Component({
         clipContext: null,
         moveingIndex: -1,
         lastRenderTime: 0,
+        imageAngle: 0,
     } as IData,
     lifetimes: {
         ready() {
@@ -106,17 +109,17 @@ Component({
             let config: IFourDotsClipperConfig = this.properties.config;
 
             /** 操作点的半径、颜色、错误颜色 */
-            let pointRaduis = config?.point?.raduis || defaultConfig.point.raduis;
-            let pointColor = config?.point?.color || config?.color || defaultConfig.color;
-            let pointErrColor = config?.point?.errColor || config?.errColor || defaultConfig.errColor;
+            let pointRaduis = config?.point?.raduis ?? defaultConfig.point.raduis;
+            let pointColor = config?.point?.color ?? config?.color ?? defaultConfig.color;
+            let pointErrColor = config?.point?.errColor ?? config?.errColor ?? defaultConfig.errColor;
             /** 操作线的宽度、颜色、错误颜色 */
-            let lineWidth = config?.line?.width || defaultConfig.line.width;
-            let lineColor = config?.point?.color || config?.color || defaultConfig.color;
-            let lineErrColor = config?.line?.errColor || config?.errColor || defaultConfig.errColor;
+            let lineWidth = config?.line?.width ?? defaultConfig.line.width;
+            let lineColor = config?.point?.color ?? config?.color ?? defaultConfig.color;
+            let lineErrColor = config?.line?.errColor ?? config?.errColor ?? defaultConfig.errColor;
             /** 渲染间隔 */
-            let renderInterval = config?.renderInterval || defaultConfig.renderInterval;
+            let renderInterval = config?.renderInterval ?? defaultConfig.renderInterval;
             /** 是否允许三角形 */
-            let allowTriangle = config?.allowTriangle || defaultConfig.allowTriangle;
+            let allowTriangle = config?.allowTriangle ?? defaultConfig.allowTriangle;
 
             const dpr = wx.getSystemInfoSync().pixelRatio
             const q = this.createSelectorQuery();
@@ -137,39 +140,13 @@ Component({
                 operateCanvas.width = operateWidth * dpr;
                 operateCanvas.height = operateHeight * dpr;
 
-                const image = await createImage(operateCanvas, this.properties.src)
-
-                const { ow, oh } = scaling(+image.width, +image.height, boxWidth, boxHeight)
-
-                const imageWidth = ow;
-                const imageHeight = oh;
-
-                const imageX = (boxWidth - imageWidth) / 2 + pointRaduis;
-                const imageY = (boxHeight - imageHeight) / 2 + pointRaduis;
-
-
-                operateContext.drawImage(image, imageX, imageY, imageWidth, imageHeight);
-
                 operateContext.scale(dpr, dpr);
-
-
-                const points = [
-                    Vector2.c(imageX, imageY),
-                    Vector2.c(imageX + imageWidth, imageY),
-                    Vector2.c(imageX + imageWidth, imageY + imageHeight),
-                    Vector2.c(imageX, imageY + imageHeight)
-                ];
 
                 const clipCanvas = res[0].node
                 const clipContext: CanvasRenderingContext2D = clipCanvas.getContext('2d')
 
-                clipCanvas.width = ow * dpr
-                clipCanvas.height = oh * dpr
-                clipContext.scale(dpr, dpr);
 
-
-
-                this.data.points = points;
+                // clipContext.scale(dpr, dpr);
 
                 this.data.operateCanvas = operateCanvas;
                 this.data.operateContext = operateContext;
@@ -184,11 +161,7 @@ Component({
                 this.data.clipCanvas = clipCanvas;
                 this.data.clipContext = clipContext;
 
-                this.data.image = image;
-                this.data.imageX = imageX;
-                this.data.imageY = imageY;
-                this.data.imageWidth = imageWidth;
-                this.data.imageHeight = imageHeight;
+
 
                 this.data.pointColor = pointColor;
                 this.data.pointErrColor = pointErrColor;
@@ -201,12 +174,67 @@ Component({
                 this.data.renderInterval = renderInterval;
                 this.data.allowTriangle = allowTriangle;
 
+                await this.imageChange(this.properties.src)
+                this.reset();
                 this.render()
 
             });
         }
     },
     methods: {
+        async imageChange(src: string) {
+            const dpr = wx.getSystemInfoSync().pixelRatio
+
+            let {
+                operateCanvas,
+                operateContext,
+                operateWidth,
+                operateHeight,
+                clipContext,
+                image,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+
+                lineColor,
+                lineErrColor,
+                lineWidth,
+
+                pointRaduis,
+                pointColor,
+                pointErrColor,
+                points,
+
+                boxWidth,
+                boxHeight,
+
+                clipCanvas
+
+            }: IData = this.data;
+
+
+            image = await createImage(operateCanvas, src)
+
+            const { ow, oh } = scaling(+image.width, +image.height, boxWidth, boxHeight)
+
+            imageWidth = ow;
+            imageHeight = oh;
+
+            imageX = (boxWidth - imageWidth) / 2 + pointRaduis;
+            imageY = (boxHeight - imageHeight) / 2 + pointRaduis;
+
+            clipCanvas.width = ow * dpr
+            clipCanvas.height = oh * dpr
+            clipContext.scale(dpr, dpr);
+
+            this.data.image = image;
+            this.data.imageWidth = imageWidth;
+            this.data.imageHeight = imageHeight;
+            this.data.imageX = imageX;
+            this.data.imageY = imageY;
+
+        },
         render() {
             let {
                 operateContext,
@@ -232,15 +260,7 @@ Component({
             // 清空画布
             operateContext.clearRect(0, 0, operateWidth, operateHeight);
 
-            // 渲染图片
-            // m_point_context.translate(r_width / 2, r_height / 2)
-            // m_point_context.rotate(m_context_rotate);
-            // m_point_context.translate(-r_width / 2, -r_height / 2)
-            // console.log(image, imageX, imageY, imageWidth, imageHeight);
-
             operateContext.drawImage(image, imageX, imageY, imageWidth, imageHeight);
-
-
             operateContext.beginPath();
             operateContext.strokeStyle = lineColor;
             operateContext.lineWidth = lineWidth;
@@ -276,11 +296,6 @@ Component({
                 operateContext.fill();
             }
             this.data.point = points;
-
-            // 还原
-            // m_point_context.translate(r_width / 2, r_height / 2)
-            // m_point_context.rotate(-m_context_rotate);
-            // m_point_context.translate(-r_width / 2, -r_height / 2)
 
         },
         touchstart(e) {
@@ -357,18 +372,7 @@ Component({
             }
             clipContext.closePath();
             clipContext.clip();
-
-            // 渲染图片
-            // m_clip_context.translate(i_width / 2, i_height / 2)
-            // m_clip_context.rotate(m_context_rotate);
-            // m_clip_context.translate(-i_width / 2, -i_height / 2)
             clipContext.drawImage(image, 0, 0, imageWidth, imageHeight);
-
-
-            // 还原
-            // m_clip_context.translate(i_width / 2, i_height / 2)
-            // m_clip_context.rotate(-m_context_rotate);
-            // m_clip_context.translate(-i_width / 2, -i_height / 2)
 
 
             /** 偏移量 */
@@ -402,19 +406,55 @@ Component({
 
         },
         /**
-         * 1.0.x 旋转 不久的未来 哈哈哈哈
-          * @param degree 角度
+         * 旋转角度
+         * @version 1.0.9
+         * @param angle 角度
          */
-        rotate(degree: number) {
-            let { r_width, r_height, m_clip_context, m_point_context, m_context_rotate } = this.data;
-            let tmp = degree * Math.PI / 180
-            this.data.m_context_rotate += tmp;
-            // ctx2.translate(dx,dy);
-            // m_clip_context.rotate(tmp)
-            // m_point_context.translate(r_width / 2, r_height / 2)
-            // m_point_context.rotate(tmp)
-            // m_point_context.translate(-r_width / 2, -r_height / 2)
-            this.requestAnimationFrame();
+        async rotate(angle: number) {
+            let {
+                image
+            }: IData = this.data;
+            this.data.imageAngle += angle;
+            let rr = await this.selectComponent("#rp").rotate({
+                image: image,
+                angle: 90
+            })
+            await this.imageChange(rr.tempFilePath)
+            this.reset();
+            this.render();
+        },
+        /**
+         * @version 1.0.9 复位
+         */
+        reset() {
+            let {
+                image,
+                imageX,
+                imageY,
+                imageWidth,
+                imageHeight,
+                clipCanvas,
+                clipContext,
+                points,
+
+                pointRaduis,
+
+                allowTriangle,
+
+                operateWidth,
+                operateHeight,
+            }: IData = this.data;
+
+
+            points = [
+                Vector2.c(imageX, imageY),
+                Vector2.c(imageX + imageWidth, imageY),
+                Vector2.c(imageX + imageWidth, imageY + imageHeight),
+                Vector2.c(imageX, imageY + imageHeight)
+            ];
+
+            this.data.points = points;
+            this.render();
         }
     }
 })

@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "rotate-picture": "../../components/components/rotate-picture/index"
+  },
+  "navigationBarTitleText": "旋转",
+  "disableScroll": true
+}

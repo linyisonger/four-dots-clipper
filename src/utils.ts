@@ -18,6 +18,23 @@ export interface IClipPictureClipParams {
 }
 
 /**
+ * 旋转图片rotate方法参数
+ */
+export interface IRotatePictureRotateParams {
+    /** 图片地址 */
+    src: string,
+    /** 
+     * 旋转角度
+     * 仅支持 90° 180° 270° 360°
+     */
+    angle: number
+    /** 图片源 */
+    image: CanvasImageSource
+}
+
+
+
+/**
  * 配置
  */
 export interface IFourDotsClipperConfig {
@@ -98,6 +115,11 @@ export function scaling(ow: number, oh: number, tw: number, th: number) {
     }
     return { ow, oh }
 }
+
+
+
+
+
 /**
  * 获取时间戳
  */

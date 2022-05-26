@@ -1,8 +1,9 @@
 <view class="he">组件</view>
-<fp-clipper id="fpc" src="https://picsum.photos/150/100" config="{{config}}"></fp-clipper>
+<fp-clipper id="fpc" src="https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fimg.jj20.com%2Fup%2Fallimg%2F1114%2F113020142315%2F201130142315-1-1200.jpg&refer=http%3A%2F%2Fimg.jj20.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto?sec=1656143223&t=40899a8825406b5bcaf1d1221fde25f8" config="{{config}}"></fp-clipper>
 <view class="op">
   <button type="primary" bindtap="clip">裁切</button>
-  <!-- <button type="primary" bindtap="rotate">旋转</button> -->
+  <button type="primary" bindtap="rotate">旋转</button>
+  <button type="primary" bindtap="reset">复位</button>
 </view>
 <view class="he">预览</view>
 <image src="{{preSrc}}" style="width: {{w}}px; height: {{h}}px;" mode="scaleToFill"></image>

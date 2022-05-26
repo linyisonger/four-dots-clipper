@@ -4,13 +4,11 @@ page {
   overflow-x: hidden;
 }
 
-#fpc,
+#cp,
 image {
   margin: 20px auto;
 }
-#fpc{
-  height: 700rpx;
-}
+
 .op {
   display: flex;
   justify-content: space-around;

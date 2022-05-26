@@ -1,5 +1,6 @@
 <view class="fd-canvas">
     <cut-picture class="canvas cut" id="cp"></cut-picture>
+    <rotate-picture class="canvas rotate" id="rp"></rotate-picture>
     <canvas type="2d" class="canvas clip" id="clip"></canvas>
     <canvas type="2d" class="canvas operate" id="operate" bindtouchstart="touchstart" bindtouchmove="touchmove"></canvas>
 </view>

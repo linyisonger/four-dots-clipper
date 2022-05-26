@@ -12,7 +12,7 @@ const dev = path.join(demoDist, 'components')
 const dist = path.resolve(__dirname, '../dist')
 
 module.exports = {
-  entry: ['utils', 'index', 'components/cut-picture/index',],
+  entry: ['utils', 'index', 'components/cut-picture/index', 'components/rotate-picture/index'],
 
   isDev,
   isWatch,

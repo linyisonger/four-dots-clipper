@@ -72,15 +72,7 @@ Page({
 
 ##### src
 
-`src:string` 图片地址
-
-##### width
-
-`width: number` 宽度
-
-##### height
-
-`height: number` 高度
+`src:string` 图片地址 
 
 ##### config
 
@@ -98,12 +90,6 @@ export interface IFourDotsClipperConfig {
     allowTriangle?: boolean
     /** 渲染间隔 ms */
     renderInterval?: number
-    /** canvas最大宽度 */
-    width?: number,
-    /** canvas最大高度 */
-    height?: number
-    /** 单位 */
-    unit?: keyof IFourDotsClipperConfigUnit
     /** 颜色 线与点 */
     color?: string,
     /** 错颜色 线与点 */

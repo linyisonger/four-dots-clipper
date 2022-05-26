@@ -66,6 +66,6 @@
     "webpack-node-externals": "^1.7.2"
   },
   "dependencies": {
-    "ru-toolkit-mathematics": "^1.0.9-a1"
+    "ru-toolkit-mathematics": "^1.1.0"
   }
 }

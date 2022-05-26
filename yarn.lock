@@ -6031,12 +6031,10 @@ rsvp@^3.3.3:
   resolved "https://registry.npmjs.org/rsvp/-/rsvp-3.6.2.tgz#2e96491599a96cde1b515d5674a8f7a91452926a"
   integrity sha512-OfWGQTb9vnwRjwtA2QwpG2ICclHC3pgXZO5xt8H2EfgDquO0qVdSb5T88L4qJVAEugbS56pAuV4XZM58UX8ulw==
 
-ru-toolkit-mathematics@^1.0.7:
-  version "1.0.7"
-  resolved "https://registry.npmjs.org/ru-toolkit-mathematics/-/ru-toolkit-mathematics-1.0.7.tgz#d56273fe8ae1e662fad4b2520e5437e95b007bd6"
-  integrity sha512-IPzu04KG/0BV7gSzDYNHW+DhKrkUDd/AnJ4gKhANiZcZIvSj1RIft8d5C9GNN2vVK1ujhK+/liu2VxFuaJIonw==
-  dependencies:
-    typescript "^4.3.2"
+ru-toolkit-mathematics@^1.0.9-a1:
+  version "1.0.9-a1"
+  resolved "https://registry.npmjs.org/ru-toolkit-mathematics/-/ru-toolkit-mathematics-1.0.9-a1.tgz#b3516b30958df6f5b64b92997d7a14da0cf57144"
+  integrity sha512-o112hiVzARcNehLFX6e3cIG0LPFp+JXSYkpRbRb1Rpd8ubevdqmRZy2YYc1qQYQMqOCTF387zdqtLmS1Jy5olw==
 
 run-queue@^1.0.0, run-queue@^1.0.3:
   version "1.0.3"
@@ -6786,11 +6784,6 @@ typescript@^3.8.3:
   version "3.9.10"
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.9.10.tgz#70f3910ac7a51ed6bef79da7800690b19bf778b8"
   integrity sha512-w6fIxVE/H1PkLKcCPsFqKE7Kv7QUwhU8qQY2MueZXWx5cPZdwFupLgKK3vntcK98BtNHZtAF4LA/yl2a7k8R6Q==
-
-typescript@^4.3.2:
-  version "4.6.4"
-  resolved "https://registry.npmjs.org/typescript/-/typescript-4.6.4.tgz#caa78bbc3a59e6a5c510d35703f6a09877ce45e9"
-  integrity sha512-9ia/jWHIEbo49HfjrLGfKbZSuWo9iTMwXO+Ca3pRsSpbsMbc7/IU8NKdCZVRRBafVPGnoJeFL76ZOAA84I9fEg==
 
 uglify-js@^2.8.22:
   version "2.8.29"

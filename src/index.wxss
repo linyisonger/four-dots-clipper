@@ -13,7 +13,8 @@
   height: inherit;
 }
 .cut,
-.clip {
+.clip,
+.rotate {
   position: absolute;
   left: 0;
   right: 0;
