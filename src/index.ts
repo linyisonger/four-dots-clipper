@@ -417,7 +417,7 @@ Component({
             this.data.imageAngle += angle;
             let rr = await this.selectComponent("#rp").rotate({
                 image: image,
-                angle: 90
+                angle
             })
             await this.imageChange(rr.tempFilePath)
             this.reset();
@@ -455,6 +455,17 @@ Component({
 
             this.data.points = points;
             this.render();
+        }
+    },
+    observers: {
+        "src": async function (newValue) {
+            const { image, operateCanvas }: IData = this.data;
+            const src = (image as any)?.src;
+            if (operateCanvas != null && src != newValue) {
+                await this.imageChange(newValue);
+                this.reset();
+                this.render();
+            }
         }
     }
 })
